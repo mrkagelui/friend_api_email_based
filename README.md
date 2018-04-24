@@ -24,7 +24,7 @@ Rails (version 5.1.6)
 Clone the repo
 
 ```
-git clone git@github.com:mrkagelui/friends_api.git
+git clone git@github.com:mrkagelui/friend_api_email_based.git
 ```
 
 Install gems
