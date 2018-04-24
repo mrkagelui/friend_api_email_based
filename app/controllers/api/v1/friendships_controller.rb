@@ -1,4 +1,5 @@
 class Api::V1::FriendshipsController < ApplicationController
+  include Helpers::Helper
   def create
     friend_emails = params[:friends]
     inblock = Blockade.exists?(blocker: friend_emails[0], blockee: friend_emails[1]) || Blockade.exists?(blocker: friend_emails[1], blockee: friend_emails[0])
@@ -25,13 +26,5 @@ class Api::V1::FriendshipsController < ApplicationController
     user_emails.each { |user_email| common_friends = (0 == common_friends.length) ? 
       get_friends_of(user_email) : common_friends & get_friends_of(user_email) }
     render json: { success: true, friends: common_friends, count: common_friends.length }, status: :ok
-  end
-
-  private
-
-  def get_friends_of(email)
-    friend2s = Friendship.where("friend1 = ?", email).collect(&:friend2)
-    friend1s = Friendship.where("friend2 = ?", email).collect(&:friend1)
-    friend1s | friend2s
   end
 end
