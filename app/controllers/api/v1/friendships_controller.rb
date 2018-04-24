@@ -1,12 +1,17 @@
 class Api::V1::FriendshipsController < ApplicationController
   def create
     friend_emails = params[:friends]
-    if friend_emails[0] < friend_emails[1]
-      Friendship.create!(friend1: friend_emails[0], friend2: friend_emails[1])
+    inblock = Blockade.exists?(blocker: friend_emails[0], blockee: friend_emails[1]) || Blockade.exists?(blocker: friend_emails[1], blockee: friend_emails[0])
+    if inblock
+      render json: { status: :bad_request, error: "one of the users is blocking another", message: 'Friendship not added' }, status: :bad_request
     else
-      Friendship.create!(friend1: friend_emails[1], friend2: friend_emails[0])
+      if friend_emails[0] < friend_emails[1]
+        Friendship.create!(friend1: friend_emails[0], friend2: friend_emails[1])
+      else
+        Friendship.create!(friend1: friend_emails[1], friend2: friend_emails[0])
+      end
+      render json: { success: true }, status: :created
     end
-    render json: { success: true }, status: :created
   end
 
   def get_friends
@@ -25,7 +30,7 @@ class Api::V1::FriendshipsController < ApplicationController
   private
 
   def get_friends_of(email)
-  	friend2s = Friendship.where("friend1 = ?", email).collect(&:friend2)
+    friend2s = Friendship.where("friend1 = ?", email).collect(&:friend2)
     friend1s = Friendship.where("friend2 = ?", email).collect(&:friend1)
     friend1s | friend2s
   end

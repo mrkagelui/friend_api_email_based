@@ -18,6 +18,12 @@ RSpec.describe Api::V1::FriendshipsController, type: :controller do
       post :create, { params: { friends: ["a@test.com", "b@test"] }, format: :json }
       expect(response).to have_http_status :bad_request
     end
+
+    it "cannot add friend if one of them is blocking another" do
+      Blockade.find_or_create_by blocker: "a@test.com", blockee: "b@test.com"
+      post :create, { params: { friends: ["a@test.com", "b@test.com"] }, format: :json }
+      expect(response).to have_http_status :bad_request
+    end
   end
 
   context "when doing GET get_friends" do
@@ -51,7 +57,7 @@ RSpec.describe Api::V1::FriendshipsController, type: :controller do
     end
 
     it "should return all common friends when there is any" do
-      Friendship.create friend1: @friends.friend1, friend2: "alice@bob.com"
+      Friendship.find_or_create_by friend1: @friends.friend1, friend2: "alice@bob.com"
       post :get_common_friends, { params: { friends: [@friends.friend2, "alice@bob.com"] }, format: :json }
       expect(response).to have_http_status :ok
       parsed_body = JSON.parse(response.body)
